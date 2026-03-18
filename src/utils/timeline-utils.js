@@ -87,10 +87,20 @@ export function dedupeBoosts(items, instance) {
   return filteredItems;
 }
 
+function hasImageWithoutAlt(status) {
+  const s = status?.reblog || status;
+  const attachments = s?.mediaAttachments;
+  if (!attachments?.length) return false;
+  return attachments.some(
+    (a) => a.type === 'image' && !a.description?.trim?.(),
+  );
+}
+
 export function filterHiddenStatuses(items, filterContext) {
-  if (!filterContext) return items;
   const currentAccount = getCurrentAccountID();
   return items.filter((item) => {
+    if (hasImageWithoutAlt(item)) return false;
+    if (!filterContext) return true;
     if (!item?.filtered) return true;
     const isOwnPost = item?.account?.id === currentAccount;
     const filterInfo = isFiltered(item.filtered, filterContext);
